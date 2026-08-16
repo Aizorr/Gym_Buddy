@@ -1,0 +1,33 @@
+name: Gym Buddy Daily Notification
+
+on:
+  schedule:
+    # Uruchamia się codziennie o 5:00 UTC (czyli 7:00 czasu polskiego w okresie letnim)
+    - cron: '0 5 * * *'
+  workflow_dispatch: # Pozwala uruchomić skrypt ręcznie z poziomu strony GitHuba
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pobranie kodu
+        uses: actions/checkout@v4
+
+      - name: Konfiguracja Pythona
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Uruchomienie skryptu
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python Gym_buddy.py
+
+      - name: Zapisanie aktualnego stanu (stan.txt) do repozytorium
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add stan.txt
+          git commit -m "Update training state" || exit 0
+          git push
